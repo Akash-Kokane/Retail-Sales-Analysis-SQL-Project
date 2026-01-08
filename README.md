@@ -39,6 +39,10 @@ CREATE TABLE retail_sales (
 ```
 
 #### 2. Data Cleaning
+-- Check initial data
+```sql
+SELECT * FROM retail_sales;
+```
 - Checked for NULL values across all columns.
 ```sql
 SELECT * FROM retail_sales WHERE transactions_id IS NULL;
@@ -84,21 +88,133 @@ SELECT COUNT(*) AS total_sales_data
 FROM retail_sales;
 ```
 - Unique customers
+```sql
+SELECT COUNT(DISTINCT customer_id) AS total_customers
+FROM retail_sales;
+```
 - Product categories
+```sql
+SELECT DISTINCT category AS number_of_categories
+FROM retail_sales;
+```
 - Data completeness validation
+```sql
+SELECT * FROM retail_sales;
+```
 
 #### 4. Business Analysis Queries
 10 key SQL queries answered:
 1. Sales on a specific date (`2022-11-05`)
-2. High-quantity Clothing sales in November 2022
-3. Total sales per category
-4. Average age of Beauty category customers
-5. High-value transactions (> 1000)
-6. Transaction count by gender and category
-7. Best-selling month per year
-8. Top 5 customers by total sales
-9. Unique customers per category
-10. Order distribution across day shifts (Morning/Afternoon/Evening)
+```sql
+SELECT * 
+FROM retail_sales
+WHERE sale_date = '2022-11-05';
+```
+3. High-quantity Clothing sales in November 2022
+```sql
+SELECT *
+FROM retail_sales
+WHERE category = 'Clothing'
+    AND quantity > 3
+    AND sale_date BETWEEN '2022-11-01' AND '2022-11-30';
+```
+5. Total sales per category
+```sql
+SELECT 
+    category, 
+    SUM(total_sale) AS total_sales_amount,
+    ROUND(SUM(total_sale), 2) AS total_sales_rounded
+FROM retail_sales
+GROUP BY category
+ORDER BY total_sales_amount DESC;
+```
+7. Average age of Beauty category customers
+```sql
+SELECT 
+    ROUND(AVG(age), 2) AS avg_age_beauty_customers
+FROM retail_sales
+WHERE category = 'Beauty';
+```
+
+9. High-value transactions (> 1000)
+```sql
+SELECT *
+FROM retail_sales
+WHERE total_sale > 1000
+ORDER BY total_sale DESC;
+```
+
+11. Transaction count by gender and category
+```sql
+SELECT 
+    gender,
+    category,
+    COUNT(*) AS total_transactions
+FROM retail_sales
+GROUP BY gender, category
+ORDER BY category, gender;
+```
+13. Best-selling month per year
+```sql
+SELECT 
+    year,
+    month,
+    avg_sale
+FROM (
+    SELECT
+        EXTRACT(YEAR FROM sale_date) AS year,
+        EXTRACT(MONTH FROM sale_date) AS month,
+        ROUND(AVG(total_sale), 2) AS avg_sale,
+        RANK() OVER(PARTITION BY EXTRACT(YEAR FROM sale_date) 
+                   ORDER BY AVG(total_sale) DESC) AS rank
+    FROM retail_sales
+    GROUP BY EXTRACT(YEAR FROM sale_date), EXTRACT(MONTH FROM sale_date)
+) AS ranked_months
+WHERE rank = 1
+ORDER BY year;
+```
+15. Top 5 customers by total sales
+```sql
+SELECT 
+    customer_id,
+    ROUND(SUM(total_sale), 2) AS total_sales_amount,
+    COUNT(*) AS total_transactions
+FROM retail_sales
+GROUP BY customer_id
+ORDER BY total_sales_amount DESC
+LIMIT 5;
+```
+17. Unique customers per category
+```sql
+SELECT 
+    category,
+    COUNT(DISTINCT customer_id) AS count_of_unique_customers,
+    ROUND(COUNT(DISTINCT customer_id) * 100.0 / 
+          (SELECT COUNT(DISTINCT customer_id) FROM retail_sales), 2) AS percentage_of_total_customers
+FROM retail_sales
+GROUP BY category
+ORDER BY count_of_unique_customers DESC;
+```
+19. Order distribution across day shifts (Morning/Afternoon/Evening)
+```sql
+WITH hourly_sale AS (
+    SELECT 
+        *,
+        CASE 
+            WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
+            WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
+            ELSE 'Evening'
+        END AS shift
+    FROM retail_sales
+)
+SELECT 
+    shift,
+    COUNT(*) AS total_orders,
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM retail_sales), 2) AS percentage_of_total_orders
+FROM hourly_sale
+GROUP BY shift
+ORDER BY total_orders DESC;
+```
 
 ## Key Findings
 ---

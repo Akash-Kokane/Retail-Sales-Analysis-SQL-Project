@@ -40,10 +40,49 @@ CREATE TABLE retail_sales (
 
 #### 2. Data Cleaning
 - Checked for NULL values across all columns.
+```sql
+SELECT * FROM retail_sales WHERE transactions_id IS NULL;
+SELECT * FROM retail_sales WHERE sale_date IS NULL;
+SELECT * FROM retail_sales WHERE sale_time IS NULL;
+SELECT * FROM retail_sales WHERE customer_id IS NULL;
+SELECT * FROM retail_sales WHERE gender IS NULL;
+SELECT * FROM retail_sales WHERE age IS NULL;
+```
 - Removed incomplete records to ensure data integrity.
+```sql
+SELECT * FROM retail_sales
+WHERE transactions_id IS NULL
+    OR sale_date IS NULL
+    OR sale_time IS NULL
+    OR customer_id IS NULL
+    OR gender IS NULL
+    OR age IS NULL
+    OR category IS NULL
+    OR quantity IS NULL 
+    OR price_per_unit IS NULL
+    OR cogs IS NULL
+    OR total_sale IS NULL;
+
+DELETE FROM retail_sales
+WHERE transactions_id IS NULL
+    OR sale_date IS NULL
+    OR sale_time IS NULL
+    OR customer_id IS NULL
+    OR gender IS NULL
+    OR age IS NULL
+    OR category IS NULL
+    OR quantity IS NULL 
+    OR price_per_unit IS NULL
+    OR cogs IS NULL
+    OR total_sale IS NULL;
+```
 
 #### 3. Exploratory Data Analysis (EDA)
 - Total records count
+```sql
+SELECT COUNT(*) AS total_sales_data
+FROM retail_sales;
+```
 - Unique customers
 - Product categories
 - Data completeness validation

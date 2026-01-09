@@ -84,17 +84,17 @@ WHERE transactions_id IS NULL
 #### 3. Exploratory Data Analysis (EDA)
 - Total records count
 ```sql
-SELECT COUNT(*) AS total_sales_data
+SELECT COUNT(*) AS TotalRecords
 FROM retail_sales;
 ```
 - Unique customers
 ```sql
-SELECT COUNT(DISTINCT customer_id) AS total_customers
+SELECT COUNT(DISTINCT customer_id) AS TotalCustomers
 FROM retail_sales;
 ```
 - Product categories
 ```sql
-SELECT DISTINCT category AS number_of_categories
+SELECT COUNT(DISTINCT Category) AS TotalCategories
 FROM retail_sales;
 ```
 - Data completeness validation
@@ -103,117 +103,116 @@ SELECT * FROM retail_sales;
 ```
 
 #### 4. Business Analysis Queries
-10 key SQL queries answered:
+- 10 key SQL queries answered:
 1. Sales on a specific date (`2022-11-05`)
 ```sql
-SELECT * 
+SELECT
+    *
 FROM retail_sales
 WHERE sale_date = '2022-11-05';
 ```
-3. High-quantity Clothing sales in November 2022
+2. High-quantity Clothing sales in November 2022
 ```sql
-SELECT *
+SELECT
+    *
 FROM retail_sales
 WHERE category = 'Clothing'
-    AND quantity > 3
-    AND sale_date BETWEEN '2022-11-01' AND '2022-11-30';
+    AND
+        quantity > 3
+    AND
+        sale_date BETWEEN '2022-11-01' AND '2022-11-30';
 ```
-5. Total sales per category
+3. Total sales per category
 ```sql
-SELECT 
-    category, 
-    SUM(total_sale) AS total_sales_amount,
-    ROUND(SUM(total_sale), 2) AS total_sales_rounded
+SELECT
+    category,
+    SUM(total_sale) AS TotalSales
 FROM retail_sales
 GROUP BY category
-ORDER BY total_sales_amount DESC;
+ORDER BY TotalSales DESC;
 ```
-7. Average age of Beauty category customers
+4. Average age of Beauty category customers
 ```sql
-SELECT 
-    ROUND(AVG(age), 2) AS avg_age_beauty_customers
+SELECT
+    category,
+    ROUND(AVG(age)) AS AverageAge
 FROM retail_sales
 WHERE category = 'Beauty';
 ```
 
-9. High-value transactions (> 1000)
+5. High-value transactions (> 1000)
 ```sql
-SELECT *
+SELECT
+    transactions_id,
+    total_sale
 FROM retail_sales
-WHERE total_sale > 1000
-ORDER BY total_sale DESC;
+WHERE total_sale > 1000;
 ```
 
-11. Transaction count by gender and category
+6. Transaction count by gender and category
 ```sql
-SELECT 
+SELECT
     gender,
     category,
-    COUNT(*) AS total_transactions
+    COUNT(*) AS TotalTransactions
 FROM retail_sales
-GROUP BY gender, category
-ORDER BY category, gender;
+GROUP BY 1,2
+ORDER BY 2;
 ```
-13. Best-selling month per year
+7. Best-selling month per year
 ```sql
-SELECT 
-    year,
-    month,
-    avg_sale
+SELECT
+    Year,
+    Month,
+    AverageSale
 FROM (
-    SELECT
-        EXTRACT(YEAR FROM sale_date) AS year,
-        EXTRACT(MONTH FROM sale_date) AS month,
-        ROUND(AVG(total_sale), 2) AS avg_sale,
-        RANK() OVER(PARTITION BY EXTRACT(YEAR FROM sale_date) 
-                   ORDER BY AVG(total_sale) DESC) AS rank
-    FROM retail_sales
-    GROUP BY EXTRACT(YEAR FROM sale_date), EXTRACT(MONTH FROM sale_date)
-) AS ranked_months
-WHERE rank = 1
-ORDER BY year;
+        SELECT
+            YEAR(sale_date) AS Year,
+            MONTH(sale_date) AS Month,
+            ROUND(AVG(total_sale),2) AS AverageSale,
+            DENSE_RANK() OVER(PARTITION BY YEAR(sale_date) ORDER BY AVG(total_sale) DESC) AS AverageRank
+        FROM retail_sales
+        GROUP BY 1,2
+    )t
+WHERE AverageRank = 1;
 ```
-15. Top 5 customers by total sales
+8. Top 5 customers by total sales
 ```sql
-SELECT 
+SELECT
     customer_id,
-    ROUND(SUM(total_sale), 2) AS total_sales_amount,
-    COUNT(*) AS total_transactions
+    SUM(total_sale) AS TotalSales
 FROM retail_sales
 GROUP BY customer_id
-ORDER BY total_sales_amount DESC
+ORDER BY TotalSales DESC
 LIMIT 5;
 ```
-17. Unique customers per category
+9. Unique customers per category
 ```sql
-SELECT 
+SELECT
     category,
-    COUNT(DISTINCT customer_id) AS count_of_unique_customers,
-    ROUND(COUNT(DISTINCT customer_id) * 100.0 / 
-          (SELECT COUNT(DISTINCT customer_id) FROM retail_sales), 2) AS percentage_of_total_customers
+    COUNT(DISTINCT(customer_id)) AS uique_customers
 FROM retail_sales
-GROUP BY category
-ORDER BY count_of_unique_customers DESC;
+GROUP BY category;
 ```
-19. Order distribution across day shifts (Morning/Afternoon/Evening)
+10. Order distribution across day shifts (Morning/Afternoon/Evening)
 ```sql
-WITH hourly_sale AS (
-    SELECT 
+WITH hourly_sale
+AS
+(
+    SELECT
         *,
-        CASE 
-            WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
-            WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
-            ELSE 'Evening'
-        END AS shift
+        CASE
+            WHEN HOUR(sale_time) < 12 THEN "Morning"
+            WHEN HOUR(sale_time) BETWEEN 12 AND 17 THEN "Afternoon"
+            ELSE "Evening"
+        END AS Shift
     FROM retail_sales
 )
-SELECT 
-    shift,
-    COUNT(*) AS total_orders,
-    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM retail_sales), 2) AS percentage_of_total_orders
+SELECT
+    Shift,
+    COUNT(*) AS TotalOrders
 FROM hourly_sale
-GROUP BY shift
-ORDER BY total_orders DESC;
+GROUP BY Shift;
 ```
 
 ## Key Findings

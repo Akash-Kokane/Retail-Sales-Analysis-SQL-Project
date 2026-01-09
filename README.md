@@ -223,13 +223,6 @@ GROUP BY Shift;
 - **Customer Insights**: Top spenders and popular categories identified.
 - **Shift Analysis**: Most orders occurred in the **Afternoon** shift.
 
-## Reports Generated
----
-1. **Sales Summary** – Overall sales and category performance.
-2. **Trend Analysis** – Monthly and yearly sales trends.
-3. **Customer Insights** – Top customers and category-wise unique customer counts.
-4. **Shift Report** – Order distribution across time shifts.
-
 ## Learning Outcomes
 ---
 - Setting up and managing a SQL database

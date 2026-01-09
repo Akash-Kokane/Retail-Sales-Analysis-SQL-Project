@@ -39,7 +39,7 @@ CREATE TABLE retail_sales (
 ```
 
 #### 2. Data Cleaning
--- Check initial data
+- Check initial data
 ```sql
 SELECT * FROM retail_sales;
 ```
